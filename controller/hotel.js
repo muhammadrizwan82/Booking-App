@@ -1,13 +1,6 @@
 import Hotel from '../models/Hotel.js'
-import ApiResponse from '../models/ApiResponse.js';
-import { createError } from "../utils/error.js";
+import apiResponse from '../models/ApiResponse.js';
 
-let apiResponse = {
-    success: false,
-    message: "",
-    status: 200,
-    data: null
-};
 
 export const createHotel = async (req, res, next) => {
     const newHotel = new Hotel(req.body);
@@ -15,19 +8,16 @@ export const createHotel = async (req, res, next) => {
 
         const saveHotel = await newHotel.save();
         if (saveHotel) {
-            apiResponse = {
-                success: true,
-                message: "Hotel added successfully",
-                status: 200,
-                data: saveHotel
-            };
+            apiResponse.success = true;
+            apiResponse.message = "Hotel added successfully";
+            apiResponse.status = 200;
+            apiResponse.data = saveHotel;
+
         } else {
-            apiResponse = {
-                success: false,
-                message: "Hotel not added",
-                status: 400,
-                data: null
-            };
+            apiResponse.success = false;
+            apiResponse.message = "Hotel not added";
+            apiResponse.status = 400;
+
         }
         res.status(200).json(apiResponse);
     }
@@ -43,29 +33,24 @@ export const updateHotel = async (req, res, next) => {
         if (findHotel) {
             const updatedHotel = await Hotel.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
             if (updatedHotel) {
-                apiResponse = {
-                    success: true,
-                    message: "Hotel updated successfully",
-                    status: 200,
-                    data: updatedHotel
-                };
+
+                apiResponse.success = true;
+                apiResponse.message = "Hotel updated successfully";
+                apiResponse.status = 200;
+                apiResponse.data = updatedHotel;
+
             }
             else {
-                apiResponse = {
-                    success: false,
-                    message: "Hotel not updated",
-                    status: 400,
-                    data: null
-                };
+                apiResponse.success = false;
+                apiResponse.message = "Hotel not updated";
+                apiResponse.status = 400;
+
             }
         }
         else {
-            apiResponse = {
-                success: false,
-                message: "invalid hotel id",
-                status: 400,
-                data: null
-            };
+            apiResponse.success = false;
+            apiResponse.message = "invalid hotel id";
+            apiResponse.status = 400;
         }
         res.status(200).json(apiResponse);
     }
@@ -79,20 +64,18 @@ export const deleteHotel = async (req, res, next) => {
 
         const findHotel = await Hotel.findById(req.params.id);
         if (findHotel) {
-            apiResponse = {
-                success: true,
-                message: "hotel deleted successfully",
-                status: 200,
-                data: findHotel
-            };
+            apiResponse.success = true;
+            apiResponse.message = "hotel deleted successfully";
+            apiResponse.status = 200;
+            apiResponse.data = findHotel;
+
+
         }
         else {
-            apiResponse = {
-                success: false,
-                message: "invalid hotel id",
-                status: 400,
-                data: null
-            };
+            apiResponse.success = false;
+            apiResponse.message = "invalid hotel id";
+            apiResponse.status = 400;
+
         }
         res.status(200).json(apiResponse);
     }
@@ -106,19 +89,16 @@ export const getHotel = async (req, res, next) => {
 
         const findHotel = await Hotel.findById(req.params.id);
         if (findHotel) {
-            apiResponse = {
-                success: true,
-                message: "hotel find",
-                status: 200,
-                data: findHotel
-            };
+            apiResponse.success = true;
+            apiResponse.message = "hotel found";
+            apiResponse.status = 200;
+            apiResponse.data = findHotel;
+
+
         } else {
-            apiResponse = {
-                success: false,
-                message: "invalid hotel id",
-                status: 400,
-                data: null
-            };
+            apiResponse.success = false;
+            apiResponse.message = "invalid hotel id";
+            apiResponse.status = 400;
         }
         res.status(200).json(apiResponse);
     }
@@ -131,12 +111,11 @@ export const getHotels = async (req, res, next) => {
     try {
 
         const findHotels = await Hotel.find();
-        apiResponse = {
-            success: true,
-            message: "getting hotels list",
-            status: 200,
-            data: findHotels
-        };
+        apiResponse.success = true;
+        apiResponse.message = "getting hotels list";
+        apiResponse.status = 200;
+        apiResponse.data = findHotels;
+
         res.status(200).json(apiResponse);
     }
     catch (error) {

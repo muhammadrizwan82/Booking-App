@@ -1,37 +1,46 @@
 import User from '../models/User.js'
 import apiResponse from '../models/ApiResponse.js';
 import bcrypt from 'bcrypt/bcrypt.js';
+import jwt from 'jsonwebtoken';
 
+let token = "";
 export const register = async (req, res, next) => {
     try {
-        const findUser = await User.findOne({ username: req.body.username })
-        if (findUser) {
+        if (!req.body.username || !req.body.password || !req.body.email) {
             apiResponse.success = false;
-            apiResponse.message = "username already exists";
+            apiResponse.message = "invalid request";
             apiResponse.status = 400;
         }
         else {
-            const salt = bcrypt.genSaltSync(10);
-            const hash = bcrypt.hashSync(req.body.password, salt);
-            const newUser = new User({
-                username: req.body.username,
-                password: hash,
-                email: req.body.eamil
-            });
-
-            newUser = await newUser.save();
-            if (newUser) {
-                apiResponse.success = true;
-                apiResponse.message = "user added successfully";
-                apiResponse.status = 200;
-                apiResponse.data = newUser;
-            } else {
+            const findUser = await User.findOne({ username: req.body.username })
+            if (findUser) {
                 apiResponse.success = false;
-                apiResponse.message = "user not added";
+                apiResponse.message = "username already exists";
                 apiResponse.status = 400;
             }
-        }
+            else {
+                const salt = bcrypt.genSaltSync(10);
+                const hash = bcrypt.hashSync(req.body.password, salt);
+                const newUser = new User({
+                    username: req.body.username,
+                    password: hash,
+                    email: req.body.eamil
+                });
 
+                const saveUser = await newUser.save();
+                if (saveUser) {
+                    const {password,isAdmin,...OtherDetails} = saveUser._doc
+                    apiResponse.success = true;
+                    apiResponse.message = "user added successfully";
+                    apiResponse.status = 200;
+                    apiResponse.data = OtherDetails;
+                } else {
+                    apiResponse.success = false;
+                    apiResponse.message = "user not added";
+                    apiResponse.status = 400;
+                }
+            }
+        }
         res.status(200).json(apiResponse);
     }
     catch (err) {
@@ -41,28 +50,49 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     try {
-        const findUser = await User.findOne({ username: req.body.username })
-        const salt = bcrypt.genSaltSync(10);
-        const isPasswordCorrect = await bcrypt.compare(req.body.password, findUser.password);
 
-        if (!findUser) {
+        if (!req.body.username || !req.body.password) {
             apiResponse.success = false;
-            apiResponse.message = "incorrect username";
+            apiResponse.message = "invalid credentials";
             apiResponse.status = 400;
-        } else {
-            if (!isPasswordCorrect) {
+        }
+        else {
+            const findUser = await User.findOne({ username: req.body.username })
+            const isPasswordCorrect = await bcrypt.compare(req.body.password, findUser.password);
+
+            if (!findUser) {
                 apiResponse.success = false;
-                apiResponse.message = "incorrect password";
+                apiResponse.message = "incorrect username";
                 apiResponse.status = 400;
-            }
-            else {
-                apiResponse.success = true;
-                apiResponse.message = "user find";
-                apiResponse.status = 200;
-                apiResponse.data = findUser;
+            } else {
+                if (!isPasswordCorrect) {
+                    apiResponse.success = false;
+                    apiResponse.message = "incorrect password";
+                    apiResponse.status = 400;
+                }
+                else {
+                    
+                    const {password,isAdmin,...OtherDetails} = findUser._doc
+                    token = jwt.sign({id:findUser._id,isAdmin:findUser.isAdmin},process.env.JWTSecret)
+                    apiResponse.success = true;
+                    apiResponse.message = "user find";
+                    apiResponse.status = 200;
+                    apiResponse.data = OtherDetails;
+                }
             }
         }
-        res.status(200).json(apiResponse);
+        if(token!="")
+        {
+            res
+                .cookie("access_token",token,{
+                    httpOnly:true
+                })
+                .status(200).json(apiResponse);
+        }
+        else{
+            res.status(200).json(apiResponse);
+        }
+        
     }
     catch (err) {
         next(err)

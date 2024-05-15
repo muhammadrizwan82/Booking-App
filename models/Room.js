@@ -1,9 +1,24 @@
 import mongoose from 'mongoose';
 const RoomSchema = new mongoose.Schema({
-    roomnumber: {
+    title: {
         type: String,
         require: true
     },
+    description: {
+        type: String,
+        require: true
+    },
+    price: {
+        type: Number,
+        require: true
+    },
+    maxPerson: {
+        type: Number,
+        require: true
+    },
+    roomNumbers: [{
+        number: Number, unavailableDates: { type: [Date] }
+    }],
     hotelid: {
         type: String,
         require: true

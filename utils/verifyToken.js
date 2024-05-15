@@ -27,16 +27,17 @@ export const verifyUser = (req, res, next) => {
     })
 }
 
-export const verifyAdmin = async (req, res, next) => {
-    console.log('first');
-    await verifyToken(req, res, () => {
-        console.log('IsAdminUser:', req.user.isAdmin)
+export const verifyAdmin = (req, res, next) => {
+
+    verifyToken(req, res, () => {
+
         if (req.user.isAdmin) {
             next();
+
         } else {
-            return next(createError(403, "you are not authorize"));
+
+            return next(createError(403, "you are not authorize, only admin can make changes"));
         }
     })
-    console.log('last');
 }
 

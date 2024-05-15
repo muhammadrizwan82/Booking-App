@@ -1,5 +1,4 @@
 import express from "express"
-
 import { createHotel, updateHotel, deleteHotel, getHotel, getHotels } from "../controller/hotel.js";
 import { verifyAdmin } from "../utils/verifyToken.js";
 

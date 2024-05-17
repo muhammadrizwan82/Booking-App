@@ -5,10 +5,21 @@ import hotelsRoute from './routes/hotels.js';
 import roomsRoute from './routes/rooms.js';
 import usersRoute from './routes/users.js';
 import cookieparser from "cookie-parser";
+import cors from "cors";
+
 const app = express();
+
+// CORS configuration
+const corsOptions = {
+    origin: 'http://localhost:3000', // Replace with your client's origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true, // Allow credentials (cookies, authorization headers)
+};
 
 
 //Middleware
+app.use(cors(corsOptions));
 app.use(cookieparser());
 app.use(express.json());
 app.use("/api/auth", authRoute)

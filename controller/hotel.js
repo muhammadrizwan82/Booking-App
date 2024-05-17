@@ -112,3 +112,48 @@ export const getHotels = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getHotelCountByCity = async (req, res, next) => {
+    const response = { ...apiResponse };
+
+    if (!req.query.cities) {
+        response.message = "No cities provided";
+        response.status = 400;
+        return res.status(response.status).json(response);
+    }
+
+    const cities = req.query.cities.split(",").map(city => city.trim());
+    console.log(cities);
+    try {
+        const hotelData = await Promise.all(cities.map(async (city) => {
+            const hotels = await Hotel.find({ city: city }).select('photos');
+            const count = hotels.length;
+            const photoUrl = hotels.length > 0 && hotels[0].photos.length > 0 ? hotels[0].photos[0] : null;
+            return { city, count, photoUrl };
+        }));
+
+        response.success = true;
+        response.message = "Getting hotels count by cities";
+        response.status = 200;
+        response.data = hotelData;
+        res.status(response.status).json(response);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+export const getHotelCountByType = async (req, res, next) => {
+    const response = { ...apiResponse };
+
+    try {
+        const findHotels = await Hotel.find({});
+        response.success = true;
+        response.message = "Getting hotels list";
+        response.status = 200;
+        response.data = findHotels;
+        res.status(response.status).json(response);
+    } catch (error) {
+        next(error);
+    }
+};

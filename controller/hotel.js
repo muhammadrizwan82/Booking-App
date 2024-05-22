@@ -1,5 +1,7 @@
 import Hotel from '../models/Hotel.js';
 import apiResponse from '../models/ApiResponse.js';
+import { camelCase } from '../utils/helper.js';
+//const { camelCase } = require('../utils/helper.js');
 
 export const createHotel = async (req, res, next) => {
     const newHotel = new Hotel(req.body);
@@ -98,11 +100,25 @@ export const getHotel = async (req, res, next) => {
     }
 };
 
+/*
+const { min, max, ...others } = req.query;
+console.log(min | 1, max || 10000, others)
+try {
+    const findHotels = await Hotel.find({
+        req.query
+    })//.limit(req.query.limit);
+*/
 export const getHotels = async (req, res, next) => {
     const response = { ...apiResponse };
-
+    const { min, max, limit, ...others } = req.query;
+    console.log(min | 1, max || 10000, limit, others)
     try {
-        const findHotels = await Hotel.find();
+        const findHotels = await Hotel.find({
+            ...others, cheapestPrice: {
+                $gt: min | 1,
+                $lt: max || 10000
+            }
+        }).limit(limit);
         response.success = true;
         response.message = "Getting hotels list";
         response.status = 200;
@@ -146,12 +162,26 @@ export const getHotelCountByCity = async (req, res, next) => {
 export const getHotelCountByType = async (req, res, next) => {
     const response = { ...apiResponse };
 
+    if (!req.query.types) {
+        response.message = "No type provided";
+        response.status = 400;
+        return res.status(response.status).json(response);
+    }
+
+    const types = req.query.types.split(",").map(type => type.trim());
+    console.log(types);
     try {
-        const findHotels = await Hotel.find({});
+        const hotelData = await Promise.all(types.map(async (type) => {
+            const hotels = await Hotel.find({ type: type }).select('photos');
+            const count = hotels.length;
+            const photoUrl = hotels.length > 0 && hotels[0].photos.length > 0 ? hotels[0].photos[0] : null;
+            return { type, count, photoUrl };
+        }));
+
         response.success = true;
-        response.message = "Getting hotels list";
+        response.message = "Getting hotels count by types";
         response.status = 200;
-        response.data = findHotels;
+        response.data = hotelData;
         res.status(response.status).json(response);
     } catch (error) {
         next(error);
